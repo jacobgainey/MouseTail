@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Windows.Forms;
 
@@ -6,6 +7,8 @@ namespace MouseTail
 {
     public partial class Form1 : Form
     {
+        private List<Watcher.FileWatcher> FileWatcherList;
+
         public Form1()
         {
             InitializeComponent();
@@ -13,16 +16,13 @@ namespace MouseTail
 
         private void Button1_Click(object sender, EventArgs e)
         {
-            Watcher.FileWatcher fileWatcher1 = new Watcher.FileWatcher(@"D:\test\test1.txt");
-            fileWatcher1.OnChanged += FileWatcher_OnChanged;
-            fileWatcher1.OnCreated += FileWatcher_OnCreated;
-            fileWatcher1.OnDeleted += FileWatcher_OnDeleted;
-            fileWatcher1.OnRenamed += FileWatcher_OnRenamed;
-            Watcher.FileWatcher fileWatcher2 = new Watcher.FileWatcher(@"D:\test\test2.txt");
-            fileWatcher2.OnChanged += FileWatcher_OnChanged;
-            fileWatcher2.OnCreated += FileWatcher_OnCreated;
-            fileWatcher2.OnDeleted += FileWatcher_OnDeleted;
-            fileWatcher2.OnRenamed += FileWatcher_OnRenamed;
+            Watcher.FileWatcher fileWatcher = new Watcher.FileWatcher(@"D:\test\test1.txt");
+            fileWatcher.OnChanged += FileWatcher_OnChanged;
+            fileWatcher.OnCreated += FileWatcher_OnCreated;
+            fileWatcher.OnDeleted += FileWatcher_OnDeleted;
+            fileWatcher.OnRenamed += FileWatcher_OnRenamed;
+
+            FileWatcherList.Add(fileWatcher);
         }
 
         public void UpdateListBox(string message)
