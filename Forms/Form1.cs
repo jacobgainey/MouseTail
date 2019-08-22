@@ -55,8 +55,8 @@ namespace MouseTail
             TabPage tabPage = new TabPage("New");
             ListBox listBox = new ListBox();
 
-            listBox.Items.Add($"Hello {DateTime.Now}");
             listBox.Dock = DockStyle.Fill;
+            listBox.Items.Add($"Hello {DateTime.Now}");
             listBox.IntegralHeight = false;
 
             tabPage.Controls.Add(listBox);
