@@ -7,61 +7,43 @@ namespace MouseTail
 {
     public partial class Form1 : Form
     {
-        private List<Watcher.FileWatcher> FileWatcherList = new List<Watcher.FileWatcher>();
+        // 
+        private List<Watchers.FileWatcher> FileWatcherList = new List<Watchers.FileWatcher>();
+
+        #region *** WinForm Events
 
         public Form1()
         {
             InitializeComponent();
         }
 
-        //public void UpdateListBox(string message)
-        //{
-        //    if (!InvokeRequired)
-        //    {
-        //        listBox1.Items.Add($"{message}");
-        //    }
-        //    else
-        //    {
-        //        Invoke(new Action<string>(UpdateListBox), message);
-        //    }
-        //}
-
-        private void FileWatcher_OnChanged(object sender, FileSystemEventArgs e)
-        {
-            //UpdateListBox($"[{DateTime.Now}] CHANGED - {e.Name}");
-        }
-
-        private static void FileWatcher_OnCreated(object sender, FileSystemEventArgs e)
-        {
-            Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine($"[{DateTime.Now}] CREATED - {e.Name}");
-        }
-
-        private static void FileWatcher_OnDeleted(object sender, FileSystemEventArgs e)
-        {
-            Console.ForegroundColor = ConsoleColor.Red;
-            Console.WriteLine($"[{DateTime.Now}] DELETED - {e.Name}");
-        }
-
-        private static void FileWatcher_OnRenamed(object sender, FileSystemEventArgs e)
-        {
-            Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.WriteLine($"[{DateTime.Now}] RENAMED - {e.Name}");
-        }
-
         private void OpenToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            //OpenFile();
-            TabPage tabPage = new TabPage("New");
-            ListBox listBox = new ListBox();
+            OpenFile();
+        }
 
-            listBox.Dock = DockStyle.Fill;
-            listBox.Items.Add($"Hello {DateTime.Now}");
-            listBox.IntegralHeight = false;
+        private void TabControl1_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            int i = tabControl1.SelectedIndex;
+            toolStripStatusLabel1.Text = FileWatcherList[i].FileInfo.Name;
+        }
 
-            tabPage.Controls.Add(listBox);
-            tabControl1.TabPages.Add(tabPage);
+        #endregion *** WinForm Events
 
+        #region *** Private Methods
+
+        private void UpdateListBox(object sender, string message)
+        {
+            if (!InvokeRequired)
+            {
+                Watchers.FileWatcher fileWatcher = (Watchers.FileWatcher)sender;
+                ListBox listBox = (ListBox)fileWatcher.ListBox;
+                listBox.Items.Add($"{message}");
+            }
+            else
+            {
+                Invoke(new Action<object, string>(UpdateListBox), sender, message);
+            }
         }
 
         private void OpenFile()
@@ -69,13 +51,61 @@ namespace MouseTail
             openFileDialog1.InitialDirectory = @"D:\test";
             openFileDialog1.ShowDialog();
 
-            Watcher.FileWatcher fileWatcher = new Watcher.FileWatcher(openFileDialog1.FileName);
+            Watchers.FileWatcher fileWatcher = new Watchers.FileWatcher(openFileDialog1.FileName);
             fileWatcher.OnChanged += FileWatcher_OnChanged;
             fileWatcher.OnCreated += FileWatcher_OnCreated;
             fileWatcher.OnDeleted += FileWatcher_OnDeleted;
             fileWatcher.OnRenamed += FileWatcher_OnRenamed;
 
+            ListBox listBox = new ListBox
+            {
+                Dock = DockStyle.Fill,
+                IntegralHeight = false,
+                Items =
+                {
+                    $"Hello {DateTime.Now}",
+                    $" count {this.FileWatcherList.Count}"
+                }
+            };
+
+            TabPage tabPage = new TabPage
+            {
+                Text = fileWatcher.FileInfo.Name,
+                Controls = { listBox }
+            };
+
+            tabControl1.TabPages.Add(tabPage);
+            fileWatcher.ListBox = listBox;
             FileWatcherList.Add(fileWatcher);
         }
+
+        #endregion *** Private Methods
+
+        #region *** Private Callback Methods
+
+        private void FileWatcher_OnChanged(object sender, FileSystemEventArgs e)
+        {
+            UpdateListBox(sender, $"[{DateTime.Now}] CHANGED - {e.Name}");
+        }
+
+        private void FileWatcher_OnCreated(object sender, FileSystemEventArgs e)
+        {
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine($"[{DateTime.Now}] CREATED - {e.Name}");
+        }
+
+        private void FileWatcher_OnDeleted(object sender, FileSystemEventArgs e)
+        {
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine($"[{DateTime.Now}] DELETED - {e.Name}");
+        }
+
+        private void FileWatcher_OnRenamed(object sender, FileSystemEventArgs e)
+        {
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.WriteLine($"[{DateTime.Now}] RENAMED - {e.Name}");
+        }
+
+        #endregion *** Private Callback Methods
     }
 }

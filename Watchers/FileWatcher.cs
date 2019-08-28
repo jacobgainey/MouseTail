@@ -1,8 +1,8 @@
 ﻿using System.IO;
 
-namespace MouseTail.Watcher
+namespace MouseTail.Watchers
 {
-    public class FileWatcher 
+    public class FileWatcher
     {
         public event FileSystemEventHandler OnChanged;
 
@@ -12,9 +12,12 @@ namespace MouseTail.Watcher
 
         public event FileSystemEventHandler OnRenamed;
 
+        public FileInfo FileInfo;
+        public object ListBox;
+
         public FileWatcher(string fileName)
         {
-            FileInfo fileInfo = new FileInfo(fileName);
+            this.FileInfo = new FileInfo(fileName);
 
             // instantiate the object
             FileSystemWatcher fileSystemWatcher = new FileSystemWatcher();
@@ -26,8 +29,8 @@ namespace MouseTail.Watcher
             fileSystemWatcher.Renamed += Renamed;
 
             // tell the watcher where to look
-            fileSystemWatcher.Path = fileInfo.DirectoryName;
-            fileSystemWatcher.Filter = fileInfo.Name;
+            fileSystemWatcher.Path = FileInfo.DirectoryName;
+            fileSystemWatcher.Filter = FileInfo.Name;
 
             // allow events to fire.
             fileSystemWatcher.EnableRaisingEvents = true;
