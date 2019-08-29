@@ -1,7 +1,10 @@
 ﻿using MouseTail.Forms;
 using System;
 using System.Collections.Generic;
+using System.Data;
+using System.Drawing;
 using System.IO;
+using System.Linq;
 using System.Windows.Forms;
 
 namespace MouseTail
@@ -16,6 +19,15 @@ namespace MouseTail
         public FormMain()
         {
             InitializeComponent();
+        }
+
+        private void FormMain_Load(object sender, EventArgs e)
+        {
+            dataGridView1.Dock = DockStyle.Fill;
+            tabControl1.Dock = DockStyle.Fill;
+
+            dataGridView1.Visible = true;
+            tabControl1.Visible = false;
         }
 
         private void OpenToolStripMenuItem_Click(object sender, EventArgs e)
@@ -44,10 +56,7 @@ namespace MouseTail
             if (!InvokeRequired)
             {
                 Watchers.FileWatcher fileWatcher = (Watchers.FileWatcher)sender;
-                ListBox listBox = (ListBox)fileWatcher.ListBox;
-
-                listBox.Items.Clear();
-                listBox.Items.AddRange(fileWatcher.SafeReadAllLines());
+                UpdateListBox(fileWatcher);
             }
             else
             {
@@ -59,8 +68,43 @@ namespace MouseTail
         {
             ListBox listBox = (ListBox)fileWatcher.ListBox;
 
+            listBox.Visible = false;
             listBox.Items.Clear();
-            listBox.Items.AddRange(fileWatcher.SafeReadAllLines());
+            listBox.Items.AddRange(fileWatcher.SafeReadAllLines().ToArray<object>());
+            listBox.SelectedIndex = listBox.Items.Count - 1;
+            listBox.Visible = true;
+        }
+
+        private void UpdateDataGrid(object sender, string message)
+        {
+            if (!InvokeRequired)
+            {
+                Watchers.FileWatcher fileWatcher = (Watchers.FileWatcher)sender;
+                UpdateDataGrid(fileWatcher);
+            }
+            else
+            {
+                Invoke(new Action<object, string>(UpdateListBox), sender, message);
+            }
+        }
+
+        private void UpdateDataGrid(Watchers.FileWatcher fileWatcher)
+        {
+            string[] lines = fileWatcher.SafeReadAllLines();
+
+            DataTable dt = new DataTable();
+            dt.Columns.Add(fileWatcher.FileInfo.Name);
+
+            foreach (var line in lines)
+            {
+                DataRow dr = dt.NewRow();
+                dr[0] = line;
+                dt.Rows.Add(dr);
+            }
+
+            dataGridView1.DataSource = dt;
+            dataGridView1.Columns[0].HeaderCell.Style.Font = new Font("courier new", 9.75F, FontStyle.Bold);
+
         }
 
         private void OpenFile()
@@ -77,12 +121,7 @@ namespace MouseTail
             ListBox listBox = new ListBox
             {
                 Dock = DockStyle.Fill,
-                IntegralHeight = false,
-                Items =
-                {
-                    $"Hello {DateTime.Now}",
-                    $" count {this.FileWatcherList.Count}"
-                }
+                IntegralHeight = false
             };
 
             TabPage tabPage = new TabPage
@@ -95,7 +134,8 @@ namespace MouseTail
             fileWatcher.ListBox = listBox;
             FileWatcherList.Add(fileWatcher);
 
-            UpdateListBox(fileWatcher);
+            //UpdateListBox(fileWatcher);
+            UpdateDataGrid(fileWatcher);
         }
 
         #endregion *** Private Methods
@@ -104,7 +144,8 @@ namespace MouseTail
 
         private void FileWatcher_OnChanged(object sender, FileSystemEventArgs e)
         {
-            UpdateListBox(sender, null);
+            //UpdateListBox(sender, null);
+            UpdateDataGrid(sender, null);
         }
 
         private void FileWatcher_OnCreated(object sender, FileSystemEventArgs e)
@@ -126,6 +167,5 @@ namespace MouseTail
         }
 
         #endregion *** Private Callback Methods
-
     }
 }
