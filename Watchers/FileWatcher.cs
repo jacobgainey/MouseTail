@@ -1,4 +1,7 @@
-﻿using System.IO;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Text;
 
 namespace MouseTail.Watchers
 {
@@ -22,7 +25,7 @@ namespace MouseTail.Watchers
             // instantiate the object
             FileSystemWatcher fileSystemWatcher = new FileSystemWatcher();
 
-            // event handlers with the events
+            // add event handlers with the events
             fileSystemWatcher.Changed += Changed;
             fileSystemWatcher.Created += Created;
             fileSystemWatcher.Deleted += Deleted;
@@ -58,6 +61,22 @@ namespace MouseTail.Watchers
         {
             FileSystemEventHandler handler = OnRenamed;
             handler?.Invoke(this, e);
+        }
+
+        public string[] SafeReadAllLines()
+        {
+            string path = this.FileInfo.FullName;
+            using (var csv = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+            using (var sr = new StreamReader(csv))
+            {
+                List<string> file = new List<string>();
+                while (!sr.EndOfStream)
+                {
+                    file.Add(sr.ReadLine());
+                }
+
+                return file.ToArray();
+            }
         }
     }
 }

@@ -1,18 +1,19 @@
-﻿using System;
+﻿using MouseTail.Forms;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Windows.Forms;
 
 namespace MouseTail
 {
-    public partial class Form1 : Form
+    public partial class FormMain : Form
     {
-        // 
+        //
         private List<Watchers.FileWatcher> FileWatcherList = new List<Watchers.FileWatcher>();
 
         #region *** WinForm Events
 
-        public Form1()
+        public FormMain()
         {
             InitializeComponent();
         }
@@ -28,6 +29,12 @@ namespace MouseTail
             toolStripStatusLabel1.Text = FileWatcherList[i].FileInfo.Name;
         }
 
+        private void AboutToolStripMenuItem1_Click(object sender, EventArgs e)
+        {
+            var formAbout = new FormAbout();
+            formAbout.Show(this);
+        }
+
         #endregion *** WinForm Events
 
         #region *** Private Methods
@@ -38,12 +45,22 @@ namespace MouseTail
             {
                 Watchers.FileWatcher fileWatcher = (Watchers.FileWatcher)sender;
                 ListBox listBox = (ListBox)fileWatcher.ListBox;
-                listBox.Items.Add($"{message}");
+
+                listBox.Items.Clear();
+                listBox.Items.AddRange(fileWatcher.SafeReadAllLines());
             }
             else
             {
                 Invoke(new Action<object, string>(UpdateListBox), sender, message);
             }
+        }
+
+        private void UpdateListBox(Watchers.FileWatcher fileWatcher)
+        {
+            ListBox listBox = (ListBox)fileWatcher.ListBox;
+
+            listBox.Items.Clear();
+            listBox.Items.AddRange(fileWatcher.SafeReadAllLines());
         }
 
         private void OpenFile()
@@ -77,6 +94,8 @@ namespace MouseTail
             tabControl1.TabPages.Add(tabPage);
             fileWatcher.ListBox = listBox;
             FileWatcherList.Add(fileWatcher);
+
+            UpdateListBox(fileWatcher);
         }
 
         #endregion *** Private Methods
@@ -85,7 +104,7 @@ namespace MouseTail
 
         private void FileWatcher_OnChanged(object sender, FileSystemEventArgs e)
         {
-            UpdateListBox(sender, $"[{DateTime.Now}] CHANGED - {e.Name}");
+            UpdateListBox(sender, null);
         }
 
         private void FileWatcher_OnCreated(object sender, FileSystemEventArgs e)
@@ -107,5 +126,6 @@ namespace MouseTail
         }
 
         #endregion *** Private Callback Methods
+
     }
 }
